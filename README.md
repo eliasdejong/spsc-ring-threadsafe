@@ -17,7 +17,7 @@ Features:
 
 
 ## Benchmarks
-![spsc-ring-threadsafe_benchmarks](spsc-ring-threadsafe_benchmark.png)
+![spsc-ring-threadsafe_benchmarks](https://raw.githubusercontent.com/eliasdejong/spsc-ring-threadsafe/refs/heads/master/spsc-ring-threadsafe_benchmark.png)
 
 ---
 
