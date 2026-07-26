@@ -56,13 +56,11 @@ this is a bytestring message
 
 #### `spsc_ring_threadsafe.init(buf)`
 
-Initialize a mutable buffer as a ring buffer.
+Initialize a mutable buffer as a ring buffer (this function sets the read + write indexes to zero).
 
 | Parameter | Description |
 |:---|:---|
-| `buf` | Mutable buffer-compatible object (`bytearray`, `memoryview`, etc.) |
-
-**Constraints:** `buf` size must be a **power of two** between **256 bytes and 2 GiB**.
+| `buf` | Mutable buffer-compatible object (`bytearray`, `memoryview`, etc.). Size must be power of two anywhere from 256 bytes to 2 GiB. |
 
 > ⚠️ **Thread safety:** Initialization is **not** thread-safe. Initialize once before any concurrent access, or provide your own synchronization.
 
@@ -74,7 +72,7 @@ Insert an item into the ring buffer. **Non-blocking.**
 
 | Parameter | Description |
 |:---|:---|
-| `buf` | Mutable buffer-compatible object. Size must be power of two, 256 B – 2 GiB. |
+| `buf` | Mutable buffer-compatible object. Size must be power of two anywhere from 256 bytes to 2 GiB. |
 | `item` | Buffer-compatible object to insert |
 
 **Raises:** `QueueFullError` if the buffer has insufficient space.
@@ -89,7 +87,7 @@ Remove and return an item from the ring buffer. **Non-blocking.**
 
 | Parameter | Description |
 |:---|:---|
-| `buf` | Mutable buffer-compatible object. Size must be power of two, 256 B – 2 GiB. |
+| `buf` | Mutable buffer-compatible object. Size must be power of two anywhere from 256 bytes to 2 GiB. |
 
 **Returns:** Buffer-compatible object containing the message.
 
