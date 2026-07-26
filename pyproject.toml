@@ -1,0 +1,31 @@
+[project]
+name = "spsc-ring-threadsafe"
+authors = [
+    {name = "Elias de Jong", email = "elias@fastserial.com"},
+]
+version = "0.0.3"
+description = "A thread-safe SPSC queue, implemented on a ring buffer written in C"
+license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
+requires-python = ">=3.14"
+classifiers = [
+	"Development Status :: 4 - Beta",
+	"Intended Audience :: Developers",
+	"Programming Language :: C",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: Implementation :: CPython",
+	"Programming Language :: Python :: Free Threading",
+]
+dependencies = []
+
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools]
+ext-modules = [
+	{name = "spsc_ring_threadsafe", sources = ["src/spsc_ring_threadsafe.c"]}
+]
