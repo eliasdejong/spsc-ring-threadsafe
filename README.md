@@ -60,7 +60,7 @@ Initialize a mutable buffer as a ring buffer (this function sets the read + writ
 
 | Parameter | Description |
 |:---|:---|
-| `buf` | Mutable buffer-compatible object (`bytearray`, `memoryview`, etc.). Size must be power of two anywhere from 256 bytes to 2 GiB. |
+| `buf` | Mutable buffer-compatible object (`bytearray`, `memoryview`, etc.). **Size must be a power-of-two anywhere from 256 bytes to 2 GiB.** Also accepts shared memory buffers. |
 
 > ⚠️ **Thread safety:** Initialization is **not** thread-safe. Initialize once before any concurrent access, or provide your own synchronization.
 
@@ -72,7 +72,7 @@ Insert an item into the ring buffer. **Non-blocking.**
 
 | Parameter | Description |
 |:---|:---|
-| `buf` | Mutable buffer-compatible object. Size must be power of two anywhere from 256 bytes to 2 GiB. |
+| `buf` | Mutable buffer-compatible object. **Size must be a power-of-two anywhere from 256 bytes to 2 GiB.** |
 | `item` | Buffer-compatible object to insert |
 
 **Raises:** `QueueFullError` if the buffer has insufficient space.
@@ -87,7 +87,7 @@ Remove and return an item from the ring buffer. **Non-blocking.**
 
 | Parameter | Description |
 |:---|:---|
-| `buf` | Mutable buffer-compatible object. Size must be power of two anywhere from 256 bytes to 2 GiB. |
+| `buf` | Mutable buffer-compatible object. **Size must be a power-of-two anywhere from 256 bytes to 2 GiB.** |
 
 **Returns:** Buffer-compatible object containing the message.
 
