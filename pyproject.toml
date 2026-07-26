@@ -20,6 +20,10 @@ classifiers = [
 dependencies = []
 
 
+[project.urls]
+Source = "https://github.com/eliasdejong/spsc-ring-threadsafe"
+
+
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
