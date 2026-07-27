@@ -2,9 +2,12 @@
 
 **Lockless, thread-safe, single-producer, single-consumer, FIFO queue for Python — implemented on a ring buffer in C.**
 
-![PyPI Downloads](https://img.shields.io/pypi/dm/spsc-ring-threadsafe)
+![PyPI Version](https://img.shields.io/pypi/v/spsc-ring-threadsafe)
 ![PyPI Status](https://img.shields.io/pypi/status/spsc-ring-threadsafe)
+![PyPI Wheel](https://img.shields.io/pypi/wheel/spsc-ring-threadsafe)
+![PyPI Implementation](https://img.shields.io/pypi/implementation/spsc-ring-threadsafe)
 ![PyPI License](https://img.shields.io/pypi/l/spsc-ring-threadsafe)
+![PyPI Downloads](https://img.shields.io/pypi/dm/spsc-ring-threadsafe)
 
 
 ## Design
