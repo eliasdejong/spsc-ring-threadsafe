@@ -3,7 +3,7 @@ name = "spsc-ring-threadsafe"
 authors = [
     {name = "Elias de Jong", email = "elias@fastserial.com"},
 ]
-version = "0.0.8"
+version = "0.0.9"
 description = "A thread-safe SPSC queue, implemented on a ring buffer written in C"
 license = "MIT"
 license-files = ["LICENSE"]
