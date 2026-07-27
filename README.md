@@ -2,18 +2,22 @@
 
 **Lockless, thread-safe, single-producer, single-consumer, FIFO queue for Python — implemented on a ring buffer in C.**
 
+![PyPI Downloads](https://img.shields.io/pypi/dm/spsc-ring-threadsafe)
+![PyPI Status](https://img.shields.io/pypi/status/spsc-ring-threadsafe)
+![PyPI License](https://img.shields.io/pypi/l/spsc-ring-threadsafe)
+
 
 ## Design
 Built on a Lamport ring buffer with C11 `_Atomic` read/write indexes (acquire/release ordering). Producer and consumer never contend with eachother.
 
 Features:
-- single producer, single consumer, FIFO semantics
-- lockless (no mutexes or spinlocks)
-- non-blocking / async-friendly
-- suitable for shared memory and IPC
-- compatible with no-GIL & subinterpreters
-- low overhead, especially for small messages
-- up to 100x faster than `multiprocessing.Queue` in the standard library
+- Single producer, single consumer, FIFO semantics
+- Lockless (no mutexes or spinlocks)
+- Non-blocking / async-friendly
+- Suitable for shared memory and IPC
+- Compatible with no-GIL & subinterpreters
+- Low overhead, especially for small messages
+- Up to 100x faster than `multiprocessing.Queue` in the standard library
 
 
 ## Benchmarks
@@ -39,6 +43,37 @@ print(result.decode())
 **Output:**
 ```
 this is a bytestring message
+```
+
+### Shared Memory
+```python
+from multiprocessing import shared_memory
+import spsc_ring_threadsafe as srt
+
+
+shm_name = "app_123456"
+
+# Process 1 (producer)
+a = shared_memory.SharedMemory(create=True, size=4096, name=shm_name)
+srt.init(a.buf) # initialize as ring buffer
+
+item = b"hello from shared memory!"
+srt.put(a.buf, item)
+a.close()
+
+
+# Process 2 (consumer)
+b = shared_memory.SharedMemory(name=shm_name)
+result = srt.get(b.buf)
+print(result.decode())
+
+b.close()
+b.unlink()
+```
+
+**Output:**
+```
+hello from shared memory!
 ```
 
 ---
@@ -72,13 +107,14 @@ Insert an item into the ring buffer. **Non-blocking.**
 
 | Parameter | Description |
 |:---|:---|
-| `buf` | Mutable buffer-compatible object. **Size must be a power-of-two anywhere from 256 bytes to 2 GiB.** |
+| `buf` | Mutable buffer-compatible object. **Size must be a power-of-two anywhere from 256 bytes to 2 GiB.** Also accepts shared memory buffers. |
 | `item` | Buffer-compatible object to insert |
 
 **Raises:** `QueueFullError` if the buffer has insufficient space.
 
 > ⚠️ Buffer must be zeroed or initialized before use.
-> ⚠️ Only a single producer is allowed for a given queue! Multiple producers are NOT thread-safe.
+
+> ⚠️ **Thread safety:** Only a single producer is allowed for a given queue! Multiple producers are NOT thread-safe.
 
 ---
 
@@ -88,14 +124,15 @@ Remove and return an item from the ring buffer. **Non-blocking.**
 
 | Parameter | Description |
 |:---|:---|
-| `buf` | Mutable buffer-compatible object. **Size must be a power-of-two anywhere from 256 bytes to 2 GiB.** |
+| `buf` | Mutable buffer-compatible object. **Size must be a power-of-two anywhere from 256 bytes to 2 GiB.** Also accepts shared memory buffers. |
 
 **Returns:** Buffer-compatible object containing the message.
 
 **Raises:** `QueueEmptyError` if no message is available.
 
 > ⚠️ Buffer must be zeroed or initialized before use.
-> ⚠️ Only a single consumer is allowed for a given queue! Multiple consumers are NOT thread-safe.
+
+> ⚠️ **Thread safety:** Only a single consumer is allowed for a given queue! Multiple consumers are NOT thread-safe.
 
 ---
 
