@@ -1,13 +1,13 @@
 # spsc-ring-threadsafe
 
-**Lockless, thread-safe single-producer single-consumer FIFO queue for Python — implemented on a ring buffer in C.**
+**Lockless, thread-safe, single-producer, single-consumer, FIFO queue for Python — implemented on a ring buffer in C.**
 
 
 ## Design
 Built on a Lamport ring buffer with C11 `_Atomic` read/write indexes (acquire/release ordering). Producer and consumer never contend with eachother.
 
 Features:
-- single producer, single consumer FIFO semantics
+- single producer, single consumer, FIFO semantics
 - lockless (no mutexes or spinlocks)
 - non-blocking / async-friendly
 - suitable for shared memory and IPC
@@ -78,6 +78,7 @@ Insert an item into the ring buffer. **Non-blocking.**
 **Raises:** `QueueFullError` if the buffer has insufficient space.
 
 > ⚠️ Buffer must be zeroed or initialized before use.
+> ⚠️ Only a single producer is allowed for a given queue! Multiple producers are NOT thread-safe.
 
 ---
 
@@ -94,6 +95,7 @@ Remove and return an item from the ring buffer. **Non-blocking.**
 **Raises:** `QueueEmptyError` if no message is available.
 
 > ⚠️ Buffer must be zeroed or initialized before use.
+> ⚠️ Only a single consumer is allowed for a given queue! Multiple consumers are NOT thread-safe.
 
 ---
 
