@@ -144,7 +144,7 @@ static inline int _srt_write(
 
 	size_t mask = bufsz - 1;
 	size_t write_ofs = write & mask;
-	size_t read_ofs = read & mask;
+	// size_t read_ofs = read & mask;
 
 	if (data_len > bufsz
 		|| write_ofs > bufsz - data_len
@@ -188,7 +188,7 @@ static inline int _srt_read(
 	uint32_t read = atomic_load_explicit(&h->read, memory_order_relaxed);
 
 	size_t mask = bufsz - 1;
-	size_t write_ofs = write & mask;
+	// size_t write_ofs = write & mask;
 	size_t read_ofs = read & mask;
 
 	if (write - read > bufsz - read_ofs && read_ofs == bufsz - wm) {
