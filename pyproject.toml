@@ -3,7 +3,7 @@ name = "spsc-ring-threadsafe"
 authors = [
     {name = "Elias de Jong", email = "elias@fastserial.com"},
 ]
-version = "0.0.9"
+version = "0.1.1"
 description = "A thread-safe SPSC queue, implemented on a ring buffer written in C"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -33,3 +33,12 @@ build-backend = "setuptools.build_meta"
 ext-modules = [
 	{name = "spsc_ring_threadsafe", sources = ["src/spsc_ring_threadsafe.c"]}
 ]
+
+
+[tool.cibuildwheel]
+test-command = "python -m unittest discover -s {project}/tests"
+skip = "*musllinux* *i686* *win32*"
+build = "cp314*"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
