@@ -37,28 +37,47 @@ _Static_assert(offsetof(srt_header, write_wm) == SRT_CACHE_LINE_ALIGNMENT);
 
 
 
-static PyObject *srt_QueueEmptyError;
-static PyObject *srt_QueueFullError;
+typedef struct {
+	PyObject *QueueEmptyError;
+	PyObject *QueueFullError;
+} srt_state;
 
 static int srt_exec(PyObject *module)
 {
-	srt_QueueEmptyError = PyErr_NewExceptionWithDoc(
+	srt_state *st = (srt_state *)PyModule_GetState(module);
+	st->QueueEmptyError = PyErr_NewExceptionWithDoc(
 		"spsc_ring_threadsafe.QueueEmptyError",
 		"cannot get item: buffer empty",
 		NULL, NULL);
-	if (PyModule_AddObjectRef(module, "QueueEmptyError", srt_QueueEmptyError) < 0)
+	if (PyModule_AddObjectRef(module, "QueueEmptyError", st->QueueEmptyError) < 0)
 		goto cleanup;
-	srt_QueueFullError = PyErr_NewExceptionWithDoc(
+	st->QueueFullError = PyErr_NewExceptionWithDoc(
 		"spsc_ring_threadsafe.QueueFullError",
 		"cannot put item: buffer full",
 		NULL, NULL);
-	if (PyModule_AddObjectRef(module, "QueueFullError", srt_QueueFullError) < 0)
+	if (PyModule_AddObjectRef(module, "QueueFullError", st->QueueFullError) < 0)
 		goto cleanup;
 	return 0;
 cleanup:
-	Py_CLEAR(srt_QueueEmptyError);
-	Py_CLEAR(srt_QueueFullError);
+	Py_CLEAR(st->QueueEmptyError);
+	Py_CLEAR(st->QueueFullError);
 	return -1;
+}
+
+static int srt_traverse(PyObject *module, visitproc visit, void *arg)
+{
+	srt_state *st = (srt_state *)PyModule_GetState(module);
+	Py_VISIT(st->QueueEmptyError);
+	Py_VISIT(st->QueueFullError);
+	return 0;
+}
+
+static int srt_clear(PyObject *module)
+{
+	srt_state *st = (srt_state *)PyModule_GetState(module);
+	Py_CLEAR(st->QueueEmptyError);
+	Py_CLEAR(st->QueueFullError);
+	return 0;
 }
 
 static inline size_t _srt_get_wm_size_min(unsigned char *buf, size_t bufsz)
@@ -108,6 +127,7 @@ cleanup:
 }
 
 static inline int _srt_write(
+	srt_state *st,
 	unsigned char *restrict buf,
 	size_t bufsz,
 	unsigned char *restrict data,
@@ -137,7 +157,7 @@ static inline int _srt_write(
 	if (written > bufsz
 		|| data_len > bufsz - written
 		|| SRT_MSG_PREFIX_SIZE > bufsz - written - data_len) {
-		PyErr_SetNone(srt_QueueFullError);
+		PyErr_SetNone(st->QueueFullError);
 		return -1;
 	}
 	memcpy(buf + (write & mask), &data_len, SRT_MSG_PREFIX_SIZE);
@@ -153,6 +173,7 @@ static inline int _srt_write(
 }
 
 static inline int _srt_read(
+	srt_state *st,
 	unsigned char *restrict buf,
 	size_t bufsz,
 	PyObject **out_obj)
@@ -175,7 +196,7 @@ static inline int _srt_read(
 	}
 	size_t written = write - read;
 	if (written == 0) {
-		PyErr_SetNone(srt_QueueEmptyError);
+		PyErr_SetNone(st->QueueEmptyError);
 		return -1;
 	}
 	size_t out_len = 0;
@@ -191,7 +212,7 @@ static inline int _srt_read(
 
 static PyObject *srt_put(PyObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
-	(void)self;
+	srt_state *st = (srt_state *)PyModule_GetState(self);
 	if (nargs != 2) {
 		PyErr_Format(PyExc_TypeError, "put() takes exactly 2 arguments (%zd given)", nargs);
 		return NULL;
@@ -208,7 +229,8 @@ static PyObject *srt_put(PyObject *self, PyObject *const *args, Py_ssize_t nargs
 	}
 	if (_srt_buf_validate((unsigned char *)pybuf.buf, (size_t)pybuf.len) < 0)
 		goto cleanup;
-	if (_srt_write(	(unsigned char *)pybuf.buf,	(size_t)pybuf.len,
+	if (_srt_write(	st,
+			(unsigned char *)pybuf.buf,	(size_t)pybuf.len,
 			(unsigned char *)item_pybuf.buf,(size_t)item_pybuf.len) < 0)
 		goto cleanup;
 	PyBuffer_Release(&pybuf);
@@ -222,14 +244,14 @@ cleanup:
 
 static PyObject *srt_get(PyObject *self, PyObject *buf_obj)
 {
-	(void)self;
+	srt_state *st = (srt_state *)PyModule_GetState(self);
 	Py_buffer pybuf;
 	if (PyObject_GetBuffer(buf_obj, &pybuf, PyBUF_SIMPLE | PyBUF_WRITABLE) < 0)
 		return NULL;
 	if (_srt_buf_validate((unsigned char *)pybuf.buf, (size_t)pybuf.len) < 0)
 		goto cleanup;
 	PyObject *ret = NULL;
-	if (_srt_read((unsigned char *)pybuf.buf, (size_t)pybuf.len, &ret) < 0)
+	if (_srt_read(st, (unsigned char *)pybuf.buf, (size_t)pybuf.len, &ret) < 0)
 		goto cleanup;
 	PyBuffer_Release(&pybuf);
 	return ret;
@@ -256,11 +278,11 @@ static struct PyModuleDef srt_module = {
 	.m_base = PyModuleDef_HEAD_INIT,
 	.m_name = "spsc_ring_threadsafe",
 	.m_doc = "Thread-safe SPSC queue for Python, implemented on a ring buffer written in C\n",
-	.m_size = 0,
+	.m_size = sizeof(srt_state),
 	.m_methods = srt_methods,
 	.m_slots = srt_slots,
-	.m_traverse = NULL,
-	.m_clear = NULL,
+	.m_traverse = srt_traverse,
+	.m_clear = srt_clear,
 	.m_free = NULL,
 };
 
